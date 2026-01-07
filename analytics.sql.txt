@@ -1,0 +1,17 @@
+-- Total revenue per city
+SELECT city, SUM(amount) AS total_revenue
+FROM transactions
+GROUP BY city;
+
+-- Monthly revenue
+SELECT EXTRACT(MONTH FROM transaction_date) AS month,
+       SUM(amount) AS revenue
+FROM transactions
+GROUP BY month
+ORDER BY month;
+
+-- Top spending customers
+SELECT customer_id, SUM(amount) AS total_spent
+FROM transactions
+GROUP BY customer_id
+ORDER BY total_spent DESC;

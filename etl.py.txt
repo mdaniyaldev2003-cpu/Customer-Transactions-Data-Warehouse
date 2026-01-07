@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+import psycopg2
+
+# Extract
+df = pd.read_csv("data/transactions.csv")
+
+# Transform
+df.drop_duplicates(inplace=True)
+df['transaction_date'] = pd.to_datetime(df['transaction_date'])
+df['amount'] = pd.to_numeric(df['amount'])
+
+# Feature engineering
+df['year'] = df['transaction_date'].dt.year
+df['month'] = df['transaction_date'].dt.month
+
+# Load
+conn = psycopg2.connect(
+    host="localhost",
+    database="customer_dw",
+    user="postgres",
+    password="password"
+)
+cursor = conn.cursor()
+
+insert_query = """
+INSERT INTO transactions
+(transaction_id, customer_id, transaction_date, amount, category, city)
+VALUES (%s, %s, %s, %s, %s, %s)
+"""
+
+for _, row in df.iterrows():
+    cursor.execute(insert_query, (
+        int(row['transaction_id']),
+        int(row['customer_id']),
+        row['transaction_date'],
+        int(row['amount']),
+        row['category'],
+        row['city']
+    ))
+
+conn.commit()
+cursor.close()
+conn.close()
+
+print("Customer Data Warehouse ETL Completed")
